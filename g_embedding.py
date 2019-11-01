@@ -11,13 +11,8 @@ class Systems:
         self._system = None
 
     def results(self, dfactor):
-        def coefficient(node, row_node):
-            if node == row_node:
-                return dfactor / len(self._graph[node])
-            return -1.0
-
         if not self._system:
-            self._system = System(SystemLeft(self._graph, coefficient))
+            self._system = System(SysLeft(self._graph, dfactor))
         for n in range(len(self._graph)):
             self._system.result(SystemRight(self._graph, n))
 
@@ -30,45 +25,19 @@ class System:
         return spsolve(self._left.matrix(), right.matrix())
 
 
-class SystemLeft:
-    def __init__(self, graph, coefficient):
+class SysLeft:
+    def __init__(self, graph, dfactor):
         self._graph = graph
+        self._dfactor = dfactor
         self._cached = None
-        self._coeff = coefficient
 
     def matrix(self):
-        if not self._cached:
-            row_length = (self._graph.vertices_num * 2 + self._graph.nodes_num)
-            print(row_length)
-            left_data = np.empty([row_length], dtype=float)
-            left_indices = np.empty([row_length], dtype=int)
-            left_indptr = np.empty(len(self._graph) + 1, dtype=int)
-            left_indptr[0] = 0
-            counter = 0
-            for row_node in range(len(self._graph)):
-                neighbors = self._graph[row_node]
-                for node in neighbors:
-                    left_data[counter] = self._coeff(node, row_node)
-                    left_indices[counter] = node
-                    counter += 1
-                left_indptr[row_node + 1] = counter
-            self._cached = csr_matrix((left_data, left_indices, left_indptr), dtype=float)
-        return self._cached
-
-
-class SysLeft:
-    def __init__(self, graph, coefficient):
-        self._graph = graph
-        self._cached = None
-        self._coeff = coefficient
-
-    def matrix(self, dfactor):
-        if not self._cached:
+        if self._cached is None:
             nodes_number = self._graph.nodes_num
             ones = csr_matrix(np.ones([1, nodes_number]))
             weights = ones.dot(self._graph.adjacency)
-            weights.data = weights.power(-1, np.float) * dfactor
-            weights = weights.toarray().reshape([nodes_number,])
+            weights = weights.power(-1, np.float) * self._dfactor
+            weights = weights.toarray().reshape([nodes_number, ])
             weights = sparse.diags(weights).tocsr()
             matrix = self._graph.adjacency.dot(weights)
             matrix.setdiag(-1.0)
@@ -79,34 +48,24 @@ class SysLeft:
 class SystemRight:
     def __init__(self, graph, central_node):
         self._graph = graph
-        self._central = central_node
+        self._central_node = central_node
 
     def matrix(self):
         sys_right = np.empty([len(self._graph), 1], dtype=float)
         for node in self._graph:        
-            sys_right[node] = -1.0 if node == self._central else 0.0
+            sys_right[node] = -1.0 if node == self._central_node else 0.0
         return sys_right
 
 
-class Graph:
-    def __init__(self, neighbors_map, nodes_num, vertices_num):
-        self.neighbors_map = neighbors_map
-        self.nodes_num = nodes_num
-        self.vertices_num = vertices_num
+class SparseGraph:
+    def __init__(self, matrix):
+        self.adjacency = matrix
+        self.nodes_num = matrix.shape[0]
 
-    def __getitem__(self, key):
-        return self.neighbors_map[key]
 
-    def __iter__(self):
-        return iter(range(self.nodes_num))
-    
-    def __len__(self):
-        return self.nodes_num
-
-    @classmethod
-    def from_networkx(cls, g: net.Graph):
-        return cls(
-            {n: np.array(sorted((*g.neighbors(n), n)), dtype=np.int32) for n in g},
-            g.number_of_nodes(),
-            g.number_of_edges(),
-        )
+def adj(g: net.Graph):
+    m = np.empty([g.number_of_nodes(), g.number_of_nodes()])
+    for i in range(g.number_of_nodes()):
+        for j in range(g.number_of_nodes()):
+            m[i, j] = int(g.has_edge(i, j))
+    return csr_matrix(m)
