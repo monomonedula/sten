@@ -20,7 +20,7 @@ class Systems:
 class System:
     def __init__(self, left):
         self._left = left
-    
+
     def result(self, right):
         return spsolve(self._left.matrix(), right.matrix())
 
@@ -35,11 +35,19 @@ class SysLeft:
         if self._cached is None:
             nodes_number = self._graph.nodes_num
             ones = csr_matrix(np.ones([1, nodes_number]))
-            weights = ones.dot(self._graph.adjacency)
-            weights = weights.power(-1, np.float) * self._dfactor
-            weights = weights.toarray().reshape([nodes_number, ])
-            weights = sparse.diags(weights).tocsr()
-            matrix = self._graph.adjacency.dot(weights)
+            weights = ones.dot(
+                self._graph.adjacency
+            )  # counting number of connections of every node
+            weights = (
+                weights.power(-1, np.float) * self._dfactor
+            )  # converting to reciprocals
+            weights = weights.toarray().reshape([nodes_number])
+            weights = sparse.diags(
+                weights
+            ).tocsr()  # converting the vector to diagonal matrix
+            matrix = self._graph.adjacency.dot(
+                weights
+            )  # multiplying every column of the adjacency matrix with corresponding weight
             matrix.setdiag(-1.0)
             self._cached = matrix
         return self._cached
@@ -52,7 +60,7 @@ class SystemRight:
 
     def matrix(self):
         sys_right = np.empty([len(self._graph), 1], dtype=float)
-        for node in self._graph:        
+        for node in self._graph:
             sys_right[node] = -1.0 if node == self._central_node else 0.0
         return sys_right
 
