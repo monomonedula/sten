@@ -21,6 +21,7 @@ def g_m():
                     (6, 7),
                 ]
             ),
+            0.89,
             np.array(
                 [
                     [-1.0, 0.89, 0.29666667, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -37,8 +38,8 @@ def g_m():
     ]
 
 
-@pytest.mark.parametrize("graph_matrix", g_m())
-def test_system_left(graph_matrix):
-    graph, desired = graph_matrix
-    actual = SysLeft(SparseGraph(adj(graph)), 0.89).matrix().toarray()
+@pytest.mark.parametrize("graph_factor_matrix", g_m())
+def test_system_left(graph_factor_matrix):
+    graph, dfactor, desired = graph_factor_matrix
+    actual = SysLeft(SparseGraph(adj(graph)), dfactor).matrix().toarray()
     np.testing.assert_almost_equal(actual, desired)
