@@ -32,6 +32,19 @@ class SysLeft:
         self._cached = None
 
     def matrix(self):
+        """
+        Creates left matrix of the system of equations
+        for "influence" embedding generation.
+
+        Every element Aij of the matrix is one of the following:
+            0 , if there's no edge from the node i to the node j
+            -1 , if i = j
+            dfactor / (number of edges from* node j), otherwise
+
+        * number of edges of a node here is computed as sum of element of the corresponding column
+            of adjacency matrix
+        :return: csr matrix
+        """
         if self._cached is None:
             nodes_number = self._graph.nodes_num
             ones = csr_matrix(np.ones([1, nodes_number]))
