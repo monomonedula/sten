@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import sparse
 from scipy.sparse import csr_matrix
 from pypardiso import spsolve
 import networkx as net
@@ -10,13 +11,8 @@ class Systems:
         self._system = None
 
     def results(self, dfactor):
-        def coefficient(node, row_node):
-            if node == row_node:
-                return dfactor / len(self._graph[node])
-            return -1.0
-
         if not self._system:
-            self._system = System(SystemLeft(self._graph, coefficient))
+            self._system = System(SysLeft(self._graph, dfactor))
         for n in range(len(self._graph)):
             self._system.result(SystemRight(self._graph, n))
 
@@ -24,68 +20,85 @@ class Systems:
 class System:
     def __init__(self, left):
         self._left = left
-    
+
     def result(self, right):
         return spsolve(self._left.matrix(), right.matrix())
 
 
-class SystemLeft:
-    def __init__(self, graph, coefficient):
+class SysLeft:
+    def __init__(self, graph, dfactor):
         self._graph = graph
+        self._dfactor = dfactor
         self._cached = None
-        self._coeff = coefficient
 
     def matrix(self):
-        if self._cached:
-            return self._cached
-        row_length = (self._graph.vertices_num * 2 + self._graph.nodes_num)
-        print(row_length)
-        left_data = np.empty([row_length], dtype=float)
-        left_indices = np.empty([row_length], dtype=int)
-        left_indptr = np.empty(len(self._graph) + 1, dtype=int)
-        left_indptr[0] = 0
-        counter = 0    
-        for row_node in range(len(self._graph)):
-            neighbors = self._graph[row_node]
-            for node in neighbors:
-                left_data[counter] = self._coeff(node, row_node)
-                left_indices[counter] = node
-                counter += 1
-            left_indptr[row_node + 1] = counter
-        return csr_matrix((left_data, left_indices, left_indptr), dtype=float)
+        """
+        Creates left matrix of the system of equations
+        for "influence" embedding generation.
+
+        Every element Aij of the matrix is one of the following:
+            0 , if there's no edge from the node i to the node j
+            -1 , if i = j
+            dfactor / (number of edges from* node j), otherwise
+
+        * number of edges of a node here is computed as sum of element of the corresponding column
+            of adjacency matrix
+        :return: csr matrix
+        """
+        if self._cached is None:
+            ones = csr_matrix(np.ones([1, self._graph.nodes_num()]))
+            weights = ones.dot(
+                self._graph.adjacency()
+            )  # counting number of connections of every node
+            weights = (
+                weights.power(-1, np.float) * self._dfactor
+            )  # converting to reciprocals
+            weights = weights.toarray().reshape([self._graph.nodes_num()])
+            weights = sparse.diags(
+                weights
+            ).tocsr()  # converting the vector to diagonal matrix
+            matrix = self._graph.adjacency().dot(
+                weights
+            )  # multiplying every column of the adjacency matrix with corresponding weight
+            matrix.setdiag(-1.0)
+            self._cached = matrix
+        return self._cached
 
 
 class SystemRight:
     def __init__(self, graph, central_node):
         self._graph = graph
-        self._central = central_node
+        self._central_node = central_node
 
     def matrix(self):
-        sys_right = np.empty([len(self._graph), 1], dtype=float)
-        for node in self._graph:        
-            sys_right[node] = -1.0 if node == self._central else 0.0
+        sys_right = np.zeros([self._graph.nodes_num(), 1], dtype=float)
+        sys_right[self._central_node] = -1.0
         return sys_right
 
 
-class Graph:
-    def __init__(self, neighbors_map, nodes_num, vertices_num):
-        self.neighbors_map = neighbors_map
-        self.nodes_num = nodes_num
-        self.vertices_num = vertices_num
+class GraphCSR:
+    def __init__(self, graph: net.Graph):
+        """
+        :param graph: networkx.Graph with nodes as integers from 0 to N where N in the number of nodes
+        """
+        self._graph = graph
+        self._adj = None
 
-    def __getitem__(self, key):
-        return self.neighbors_map[key]
+    def adjacency(self):
+        """
+        :return: csr_matrix - adjacency matrix in csr format
+        """
+        if self._adj is None:
+            indptr = [0]
+            indices = []
+            data = []
+            for i in sorted(self._graph.nodes):
+                for j in self._graph.neighbors(i):
+                    data.append(1)
+                    indices.append(j)
+                indptr.append(len(indices))
+            self._adj = csr_matrix((data, indices, indptr), dtype=int)
+        return self._adj
 
-    def __iter__(self):
-        return iter(range(self.nodes_num))
-    
-    def __len__(self):
-        return self.nodes_num
-
-    @classmethod
-    def from_networkx(cls, g: net.Graph):
-        return cls(
-            {n: np.array(sorted((*g.neighbors(n), n)), dtype=np.int32) for n in g},
-            g.number_of_nodes(),
-            g.number_of_edges(),
-        )
+    def nodes_num(self):
+        return self._graph.number_of_nodes()
