@@ -46,19 +46,18 @@ class SysLeft:
         :return: csr matrix
         """
         if self._cached is None:
-            nodes_number = self._graph.nodes_num
-            ones = csr_matrix(np.ones([1, nodes_number]))
+            ones = csr_matrix(np.ones([1, self._graph.nodes_num()]))
             weights = ones.dot(
-                self._graph.adjacency
+                self._graph.adjacency()
             )  # counting number of connections of every node
             weights = (
                 weights.power(-1, np.float) * self._dfactor
             )  # converting to reciprocals
-            weights = weights.toarray().reshape([nodes_number])
+            weights = weights.toarray().reshape([self._graph.nodes_num()])
             weights = sparse.diags(
                 weights
             ).tocsr()  # converting the vector to diagonal matrix
-            matrix = self._graph.adjacency.dot(
+            matrix = self._graph.adjacency().dot(
                 weights
             )  # multiplying every column of the adjacency matrix with corresponding weight
             matrix.setdiag(-1.0)
@@ -72,21 +71,34 @@ class SystemRight:
         self._central_node = central_node
 
     def matrix(self):
-        sys_right = np.empty([len(self._graph), 1], dtype=float)
-        for node in self._graph:
-            sys_right[node] = -1.0 if node == self._central_node else 0.0
+        sys_right = np.zeros([self._graph.nodes_num, 1], dtype=float)
+        sys_right[self._central_node] = -1.0
         return sys_right
 
 
-class SparseGraph:
-    def __init__(self, matrix):
-        self.adjacency = matrix
-        self.nodes_num = matrix.shape[0]
+class GraphCSR:
+    def __init__(self, graph: net.Graph):
+        """
+        :param graph: networkx.Graph with nodes as integers from 0 to N where N in the number of nodes
+        """
+        self._graph = graph
+        self._adj = None
 
+    def adjacency(self):
+        """
+        :return: csr_matrix - adjacency matrix in csr format
+        """
+        if self._adj is None:
+            indptr = [0]
+            indices = []
+            data = []
+            for i in sorted(self._graph.nodes):
+                for j in self._graph.neighbors(i):
+                    data.append(1)
+                    indices.append(j)
+                indptr.append(len(indices))
+            self._adj = csr_matrix((data, indices, indptr), dtype=int)
+        return self._adj
 
-def adj(g: net.Graph):
-    m = np.empty([g.number_of_nodes(), g.number_of_nodes()])
-    for i in range(g.number_of_nodes()):
-        for j in range(g.number_of_nodes()):
-            m[i, j] = int(g.has_edge(i, j))
-    return csr_matrix(m)
+    def nodes_num(self):
+        return self._graph.number_of_nodes()

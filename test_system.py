@@ -2,7 +2,7 @@ import pytest
 import networkx as net
 import numpy as np
 
-from g_embedding import SysLeft, SparseGraph, adj
+from g_embedding import SysLeft, GraphCSR
 
 
 def g_m():
@@ -41,5 +41,5 @@ def g_m():
 @pytest.mark.parametrize("graph_factor_matrix", g_m())
 def test_system_left(graph_factor_matrix):
     graph, dfactor, desired = graph_factor_matrix
-    actual = SysLeft(SparseGraph(adj(graph)), dfactor).matrix().toarray()
+    actual = SysLeft(GraphCSR(graph), dfactor).matrix().toarray()
     np.testing.assert_almost_equal(actual, desired)
