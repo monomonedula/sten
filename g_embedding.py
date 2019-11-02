@@ -71,7 +71,7 @@ class SystemRight:
         self._central_node = central_node
 
     def matrix(self):
-        sys_right = np.zeros([self._graph.nodes_num, 1], dtype=float)
+        sys_right = np.zeros([self._graph.nodes_num(), 1], dtype=float)
         sys_right[self._central_node] = -1.0
         return sys_right
 
