@@ -147,3 +147,28 @@ class GraphCSR:
 
     def nodes_num(self):
         return self._graph.number_of_nodes()
+
+
+class DiGraphCSR:
+    def __init__(self, graph):
+        """
+        :param graph: networkx.DiGraph with nodes as integers from 0 to N where N in the number of nodes
+        """
+        self._graph = graph
+        self._adj = None
+
+    def adjacency(self):
+        """
+        :return: csr_matrix - adjacency matrix in csr format
+        """
+        if self._adj is None:
+            adj = GraphCSR(self._graph).adjacency()
+            if adj.shape[1] == adj.shape[0] - 1:
+                adj = sparse.hstack(
+                    (adj, np.zeros([len(self._graph), 1], dtype=int))
+                )
+            self._adj = adj
+        return self._adj
+
+    def nodes_num(self):
+        return self._graph.number_of_nodes()
