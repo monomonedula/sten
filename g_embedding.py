@@ -46,23 +46,68 @@ class SysLeft:
         :return: csr matrix
         """
         if self._cached is None:
-            ones = csr_matrix(np.ones([1, self._graph.nodes_num()]))
-            weights = ones.dot(
-                self._graph.adjacency()
-            )  # counting number of connections of every node
-            weights = (
-                weights.power(-1, np.float) * self._dfactor
-            )  # converting to reciprocals
-            weights = weights.toarray().reshape([self._graph.nodes_num()])
-            weights = sparse.diags(
-                weights
-            ).tocsr()  # converting the vector to diagonal matrix
             matrix = self._graph.adjacency().dot(
-                weights
-            )  # multiplying every column of the adjacency matrix with corresponding weight
+                DiagonalMatrix(
+                    Multiplied(
+                        Reciprocals(
+                            SumConnections(self._graph)
+                        ),
+                        self._dfactor
+                    )
+                ).matrix()
+            )
             matrix.setdiag(-1.0)
             self._cached = matrix
         return self._cached
+
+
+class SumConnections:
+    def __init__(self, graph):
+        self._graph = graph
+
+    def matrix(self):
+        """
+        Makes a N-element vector of the adjacency matrix NxN
+        where i-th element is a sum of elements in the i-th column of the adjacency matrix.
+
+        For a simple graph adjacency
+            i-th element of the vector is the number of incident edges if i-th node.
+
+        :return: csr_matrix 1xN where N is the number of nodes in the graph
+        """
+        ones = csr_matrix(np.ones([1, self._graph.nodes_num()]))
+        return ones.dot(
+            self._graph.adjacency()
+        )
+
+
+class Reciprocals:
+    def __init__(self, matrix):
+        self._matrix = matrix
+
+    def matrix(self):
+        return self._matrix.matrix().power(-1, np.float)
+
+
+class Multiplied:
+    def __init__(self, matrix, factor):
+        self._matrix = matrix
+        self._factor = factor
+
+    def matrix(self):
+        return self._matrix.matrix() * self._factor
+
+
+class DiagonalMatrix:
+    def __init__(self, matrix):
+        self._matrix = matrix
+
+    def matrix(self):
+        matrix = self._matrix.matrix()
+        n = matrix.shape[1]
+        return sparse.diags(
+            matrix.toarray().reshape([n])
+        )
 
 
 class SystemRight:
