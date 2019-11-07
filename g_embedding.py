@@ -13,8 +13,12 @@ class Systems:
     def results(self, dfactor):
         if not self._system:
             self._system = System(SysLeft(self._graph, dfactor))
-        for n in range(len(self._graph)):
-            self._system.result(SystemRight(self._graph, n))
+        return np.stack(
+            map(
+                lambda n: self._system.result(SystemRight(self._graph, n)),
+                range(self._graph.nodes_num())
+            )
+        ).T
 
 
 class System:
@@ -46,23 +50,68 @@ class SysLeft:
         :return: csr matrix
         """
         if self._cached is None:
-            ones = csr_matrix(np.ones([1, self._graph.nodes_num()]))
-            weights = ones.dot(
-                self._graph.adjacency()
-            )  # counting number of connections of every node
-            weights = (
-                weights.power(-1, np.float) * self._dfactor
-            )  # converting to reciprocals
-            weights = weights.toarray().reshape([self._graph.nodes_num()])
-            weights = sparse.diags(
-                weights
-            ).tocsr()  # converting the vector to diagonal matrix
             matrix = self._graph.adjacency().dot(
-                weights
-            )  # multiplying every column of the adjacency matrix with corresponding weight
+                DiagonalMatrix(
+                    Multiplied(
+                        Reciprocals(
+                            SumConnections(self._graph)
+                        ),
+                        self._dfactor
+                    )
+                ).matrix()
+            )
             matrix.setdiag(-1.0)
             self._cached = matrix
         return self._cached
+
+
+class SumConnections:
+    def __init__(self, graph):
+        self._graph = graph
+
+    def vector(self):
+        """
+        Makes a N-element vector of the adjacency matrix NxN
+        where i-th element is a sum of elements in the i-th column of the adjacency matrix.
+
+        For a simple graph adjacency
+            i-th element of the vector is the number of incident edges if i-th node.
+
+        :return: csr_matrix 1xN where N is the number of nodes in the graph
+        """
+        ones = csr_matrix(np.ones([1, self._graph.nodes_num()]))
+        return ones.dot(
+            self._graph.adjacency()
+        )
+
+
+class Reciprocals:
+    def __init__(self, vec):
+        self._vec = vec
+
+    def vector(self):
+        return self._vec.vector().power(-1, np.float)
+
+
+class Multiplied:
+    def __init__(self, vec, factor):
+        self._vec = vec
+        self._factor = factor
+
+    def vector(self):
+        return self._vec.vector() * self._factor
+
+
+class DiagonalMatrix:
+    def __init__(self, vec):
+        self._vec = vec
+
+    def matrix(self):
+        vec = self._vec.vector()
+        n = vec.shape[1]
+        return sparse.diags(
+            vec.toarray().reshape([n])
+        )
 
 
 class SystemRight:
@@ -98,6 +147,31 @@ class GraphCSR:
                     indices.append(j)
                 indptr.append(len(indices))
             self._adj = csr_matrix((data, indices, indptr), dtype=int)
+        return self._adj
+
+    def nodes_num(self):
+        return self._graph.number_of_nodes()
+
+
+class DiGraphCSR:
+    def __init__(self, graph):
+        """
+        :param graph: networkx.DiGraph with nodes as integers from 0 to N where N in the number of nodes
+        """
+        self._graph = graph
+        self._adj = None
+
+    def adjacency(self):
+        """
+        :return: csr_matrix - adjacency matrix in csr format
+        """
+        if self._adj is None:
+            adj = GraphCSR(self._graph).adjacency()
+            if adj.shape[1] == adj.shape[0] - 1:
+                adj = sparse.hstack(
+                    (adj, np.zeros([len(self._graph), 1], dtype=int))
+                )
+            self._adj = adj
         return self._adj
 
     def nodes_num(self):
