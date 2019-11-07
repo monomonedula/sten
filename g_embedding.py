@@ -13,8 +13,12 @@ class Systems:
     def results(self, dfactor):
         if not self._system:
             self._system = System(SysLeft(self._graph, dfactor))
-        for n in range(len(self._graph)):
-            self._system.result(SystemRight(self._graph, n))
+        return np.stack(
+            map(
+                lambda n: self._system.result(SystemRight(self._graph, n)),
+                range(self._graph.nodes_num())
+            )
+        ).T
 
 
 class System:
@@ -65,7 +69,7 @@ class SumConnections:
     def __init__(self, graph):
         self._graph = graph
 
-    def matrix(self):
+    def vector(self):
         """
         Makes a N-element vector of the adjacency matrix NxN
         where i-th element is a sum of elements in the i-th column of the adjacency matrix.
@@ -82,31 +86,31 @@ class SumConnections:
 
 
 class Reciprocals:
-    def __init__(self, matrix):
-        self._matrix = matrix
+    def __init__(self, vec):
+        self._vec = vec
 
-    def matrix(self):
-        return self._matrix.matrix().power(-1, np.float)
+    def vector(self):
+        return self._vec.vector().power(-1, np.float)
 
 
 class Multiplied:
-    def __init__(self, matrix, factor):
-        self._matrix = matrix
+    def __init__(self, vec, factor):
+        self._vec = vec
         self._factor = factor
 
-    def matrix(self):
-        return self._matrix.matrix() * self._factor
+    def vector(self):
+        return self._vec.vector() * self._factor
 
 
 class DiagonalMatrix:
-    def __init__(self, matrix):
-        self._matrix = matrix
+    def __init__(self, vec):
+        self._vec = vec
 
     def matrix(self):
-        matrix = self._matrix.matrix()
-        n = matrix.shape[1]
+        vec = self._vec.vector()
+        n = vec.shape[1]
         return sparse.diags(
-            matrix.toarray().reshape([n])
+            vec.toarray().reshape([n])
         )
 
 
