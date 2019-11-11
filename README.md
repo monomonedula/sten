@@ -1,6 +1,6 @@
-Experimental graph algorithm for node embedding generation 
+Experimental graph algorithm for node embedding generation
 
-This unsupervised learning tecnique is based on the idea of "signal" transfer from 
+This unsupervised learning technique is based on the idea of "signal" transfer from 
 one node to the rest of the graph and is also inspired by Google's PageRank algorithm.
 Main use-case of the algorithm so far is social networks clustering and community detection.
 Please refer to the jupyter notebook in this repository for the exampples.
@@ -24,3 +24,9 @@ This implementation provides classes to work with Networkx's directed and undire
 Please note, in this implementation node *i* can receive a signal from node *j* only if there's an edge *i-j*, in other words, direction of the signal flow is opposite to the direction of the edge, resembling Instagram's "follow" relation.
 
 [1]: https://github.com/haasad/PyPardisoProject
+
+# Example
+Here's an example of application of the algorithm to the famous Zachary's karate club dataset.
+
+![Test split](https://github.com/monomonedula/simple-graph-embedding/blob/master/zachary_expected.png "Zachary's karate club split")
+![Generated split](https://github.com/monomonedula/simple-graph-embedding/blob/master/zachary_computed.png "Zachary's karate club split predicted with K-Means clustering on the generated embeddings with damping factor of 0.7")
