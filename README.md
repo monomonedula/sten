@@ -28,5 +28,10 @@ Please note, in this implementation node *i* can receive a signal from node *j* 
 # Example
 Here's an example of application of the algorithm to the famous Zachary's karate club dataset.
 
+Zachary's karate club split:
+
 ![Test split](https://github.com/monomonedula/simple-graph-embedding/blob/master/zachary_expected.png "Zachary's karate club split")
+
+Zachary's karate club split predicted with K-Means clustering on the generated embeddings with damping factor of 0.7:
+
 ![Generated split](https://github.com/monomonedula/simple-graph-embedding/blob/master/zachary_computed.png "Zachary's karate club split predicted with K-Means clustering on the generated embeddings with damping factor of 0.7")
