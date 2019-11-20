@@ -9,10 +9,11 @@ Please refer to the jupyter notebook in this repository for the exampples.
 # The idea
 Here's presented the basic idea for directed/undirected unweighted graph.
 
-1. Every node is assigned a vector. For node *i* the vector's *j*-th element is a number representing its closeness to node *j* (you can think of it as signal strength).
-2. The closeness of the node *i* to the node *j* (the "central" node the singal flows from) 
-is defined as a sum of the signal strengths of the neighboring nodes multiplied by the *damping factor* parameter.
-3. Initially, the node *j* is assigned a closeness (to itself) equal to 1.
+1. Every node is assigned a vector. For node i the vector's j-th element is a number representing its closeness to node j (you can think of it as signal strength).
+2. The closeness of the node i to the node j (the "central" node the signal flows from) is defined as a sum of the signal strengths of the neighboring nodes multiplied by the damping factor parameter. (The dumping factor works like a kind of distance penalty)
+3. Signal a node "emits" to other connected nodes equal to the given signal's strength in the node itself divided by the number of edges it is able to emit to.
+4. Initially, the node j is assigned a closeness (to itself) equal to 1.
+
 
 # The implementation
 The implementation presented in this repository gets things done through solving systems of equations.
