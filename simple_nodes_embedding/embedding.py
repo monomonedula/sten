@@ -3,30 +3,24 @@ from scipy import sparse
 from scipy.sparse import csr_matrix
 from pypardiso import spsolve
 import networkx as net
+from typing import Callable
 
 
 class Systems:
-    def __init__(self, graph):
-        self._graph = graph
-        self._system = None
+    def __init__(
+        self,
+        system: "SysLeft",
+        make_system_right: Callable[[int], "SystemRight"],
+        n_nodes: int,
+    ):
+        self._system = system
+        self._right = make_system_right
+        self._n_nodes = n_nodes
 
-    def results(self, dfactor):
-        if not self._system:
-            self._system = System(SysLeft(self._graph, dfactor))
+    def results(self,):
         return np.stack(
-            map(
-                lambda n: self._system.result(SystemRight(self._graph, n)),
-                range(self._graph.nodes_num())
-            )
+            map(lambda n: self._system.result(self._right(n)), range(self._n_nodes))
         ).T
-
-
-class System:
-    def __init__(self, left):
-        self._left = left
-
-    def result(self, right):
-        return spsolve(self._left.matrix(), right.matrix())
 
 
 class SysLeft:
@@ -52,17 +46,15 @@ class SysLeft:
         if self._cached is None:
             matrix = self._graph.adjacency().dot(
                 DiagonalMatrix(
-                    Multiplied(
-                        Reciprocals(
-                            SumConnections(self._graph)
-                        ),
-                        self._dfactor
-                    )
+                    Multiplied(Reciprocals(SumConnections(self._graph)), self._dfactor)
                 ).matrix()
             )
             matrix.setdiag(-1.0)
             self._cached = matrix
         return self._cached
+
+    def result(self, right):
+        return spsolve(self.matrix(), right.matrix())
 
 
 class SumConnections:
@@ -80,9 +72,7 @@ class SumConnections:
         :return: csr_matrix 1xN where N is the number of nodes in the graph
         """
         ones = csr_matrix(np.ones([1, self._graph.nodes_num()]))
-        return ones.dot(
-            self._graph.adjacency()
-        )
+        return ones.dot(self._graph.adjacency())
 
 
 class Reciprocals:
@@ -109,9 +99,7 @@ class DiagonalMatrix:
     def matrix(self):
         vec = self._vec.vector()
         n = vec.shape[1]
-        return sparse.diags(
-            vec.toarray().reshape([n])
-        )
+        return sparse.diags(vec.toarray().reshape([n]))
 
 
 class SystemRight:
@@ -168,9 +156,7 @@ class DiGraphCSR:
         if self._adj is None:
             adj = GraphCSR(self._graph).adjacency()
             if adj.shape[1] == adj.shape[0] - 1:
-                adj = sparse.hstack(
-                    (adj, np.zeros([len(self._graph), 1], dtype=int))
-                )
+                adj = sparse.hstack((adj, np.zeros([len(self._graph), 1], dtype=int)))
             self._adj = adj
         return self._adj
 
