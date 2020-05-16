@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import sparse
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, vstack
 from pypardiso import spsolve
 import networkx as net
 from typing import Callable
@@ -19,7 +19,7 @@ class Systems:
 
     def results(self,):
         return np.stack(
-            map(lambda n: self._system.result(self._right(n)), range(self._n_nodes))
+            [self._system.result(self._right(n)) for n in range(self._n_nodes)]
         ).T
 
 
@@ -80,7 +80,7 @@ class Reciprocals:
         self._vec = vec
 
     def vector(self):
-        return self._vec.vector().power(-1, np.float)
+        return self._vec.vector().power(-1, np.float32)
 
 
 class Multiplied:
@@ -108,7 +108,7 @@ class SystemRight:
         self._central_node = central_node
 
     def matrix(self):
-        sys_right = np.zeros([self._graph.nodes_num(), 1], dtype=float)
+        sys_right = np.zeros([self._graph.nodes_num(), 1], dtype=np.float)
         sys_right[self._central_node] = -1.0
         return sys_right
 
