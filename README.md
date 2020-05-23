@@ -1,3 +1,5 @@
+Simple topological embedding for nodes.
+
 Deterministic graph algorithm for node embedding generation based on their closeness to each other
 
 This unsupervised learning technique is based on the idea of "signal" transfer from 

@@ -7,9 +7,9 @@ def readme():
 
 
 setup(
-    name='pypardiso',
+    name="sten",
     version="0.1.0",
-    packages=["simple_nodes_embedding"],
+    packages=["sten"],
     author="Vladyslav Halchenko",
     author_email="valh@tuta.io",
     license="Apache License 2.0",

@@ -1,5 +1,5 @@
 package:
-  name: simple_nodes_embedding
+  name: sten
   version: "0.1.0"
 
 source:
@@ -7,21 +7,24 @@ source:
 
 build:
   number: 0
+  noarch: generic
 
 requirements:
   build:
-    - pip
-    - python=3.7
+    - python >=3.7
     - setuptools
   run:
-    - python=3.7
-    - pypardiso
+    - python >=3.7
+    - pypardiso >=0.2.2
+    - numpy >=1.18.1
     - networkx >=2.4
-    - scipy
-    - numpy>=1.18.1
+    - scipy >=1.4.1
     - markdown
-    - statsmodels
 
+
+test:
+  imports:
+    - sten.embedding
 
 about:
   home: https://github.com/monomonedula/simple-graph-embedding

@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import sparse
-from scipy.sparse import csr_matrix, vstack
+from scipy.sparse import csr_matrix
 from pypardiso import spsolve
 import networkx as net
 from typing import Callable

@@ -2,7 +2,7 @@ import pytest
 import networkx as net
 import numpy as np
 
-from simple_nodes_embedding.embedding import (
+from sten.embedding import (
     SysLeft,
     GraphCSR,
     Systems,
