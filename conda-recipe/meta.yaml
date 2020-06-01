@@ -7,20 +7,20 @@ source:
 
 build:
   number: 0
-  noarch: generic
+  noarch: python
+  script: {{ PYTHON }} setup.py install
 
 requirements:
   build:
-    - python >=3.7
+    - python
     - setuptools
   run:
-    - python >=3.7
-    - pypardiso >=0.2.2
-    - numpy >=1.18.1
+    - python
+    - pypardiso
+    - numpy
     - networkx >=2.4
     - scipy >=1.4.1
     - markdown
-
 
 test:
   imports:
@@ -28,6 +28,7 @@ test:
 
 about:
   home: https://github.com/monomonedula/simple-graph-embedding
-  license: Apache License 2.0
+  license: Apache-2.0
+  license_family: Apache
   license_file: LICENSE.txt
   summary: Simple deterministic algorithm for generating graph nodes topological embeddings.
