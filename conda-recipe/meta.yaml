@@ -1,0 +1,34 @@
+package:
+  name: sten
+  version: "0.1.0"
+
+source:
+  path: ..
+
+build:
+  number: 0
+  noarch: python
+  script: {{ PYTHON }} setup.py install
+
+requirements:
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+    - pypardiso
+    - numpy
+    - networkx >=2.4
+    - scipy >=1.4.1
+    - markdown
+
+test:
+  imports:
+    - sten.embedding
+
+about:
+  home: https://github.com/monomonedula/simple-graph-embedding
+  license: Apache-2.0
+  license_family: Apache
+  license_file: LICENSE.txt
+  summary: Simple deterministic algorithm for generating graph nodes topological embeddings.

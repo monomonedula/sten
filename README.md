@@ -1,3 +1,5 @@
+Simple topological embedding for nodes.
+
 Deterministic graph algorithm for node embedding generation based on their closeness to each other
 
 This unsupervised learning technique is based on the idea of "signal" transfer from 
@@ -23,6 +25,12 @@ This implementation relies on [pypardiso][1] anaconda package for solving sparse
 
 This implementation provides classes to work with Networkx's directed and undirected graphs. 
 Please note, in this implementation node *i* can receive a signal from node *j* only if there's an edge *i-j*, in other words, direction of the signal flow is opposite to the direction of the edge, resembling Instagram's "follow" relation.
+
+
+Transposing resulting embeddings can sometimes yield better results.
+Transposing in this case basically means that every individual dimension j of node i embedding 
+is carrying information of how signal is transmitted from the node i to the node j, rather than 
+how string signal of node j is when it reaches node i.
 
 [1]: https://github.com/haasad/PyPardisoProject
 
