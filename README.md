@@ -1,4 +1,4 @@
-Simple topological embedding for nodes (STEN).
+# Simple topological embedding for nodes (STEN).
 
 Deterministic graph algorithm for node embedding generation based on their closeness to each other
 
