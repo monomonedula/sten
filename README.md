@@ -10,6 +10,13 @@ one node to the rest of the graph and is also inspired by Google's PageRank algo
 Main use-case of the algorithm so far is social networks clustering and community detection.
 Please refer to the jupyter notebook in this repository for the exampples.
 
+# Installation
+
+`conda install -c monomonedula sten -c haasad`
+
+This project uses [pypardiso][1] anaconda package for solving sparse linear equations, therefore `-c haasad` part is necessary.
+
+
 
 # The idea
 Here's presented the basic idea for directed/undirected unweighted graph.
@@ -42,8 +49,8 @@ Here's an example of application of the algorithm to the famous Zachary's karate
 
 Zachary's karate club split:
 
-![Test split](https://github.com/monomonedula/simple-graph-embedding/blob/master/zachary_expected.png "Zachary's karate club split")
+![Test split](https://github.com/monomonedula/sten/blob/master/zachary_expected.png "Zachary's karate club split")
 
 Zachary's karate club split predicted with K-Means clustering on the generated embeddings with damping factor of 0.7:
 
-![Generated split](https://github.com/monomonedula/simple-graph-embedding/blob/master/zachary_computed.png "Zachary's karate club split predicted with K-Means clustering on the generated embeddings with damping factor of 0.7")
+![Generated split](https://github.com/monomonedula/sten/blob/master/zachary_computed.png "Zachary's karate club split predicted with K-Means clustering on the generated embeddings with damping factor of 0.7")
