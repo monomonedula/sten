@@ -1,3 +1,6 @@
+
+[![Build Status](https://app.codeship.com/projects/8c4ecc90-8cbf-0138-fe57-46acb203fd15/status?branch=master)
+
 # Simple topological embedding for nodes (STEN).
 
 Deterministic graph algorithm for node embedding generation based on their closeness to each other
