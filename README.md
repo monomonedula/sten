@@ -1,6 +1,8 @@
 
 ![Build Status](https://app.codeship.com/projects/8c4ecc90-8cbf-0138-fe57-46acb203fd15/status?branch=master)
-
+[![Anaconda-Server Badge](https://anaconda.org/monomonedula/sten/badges/version.svg)](https://anaconda.org/monomonedula/sten)
+[![Anaconda-Server Badge](https://anaconda.org/monomonedula/sten/badges/installer/conda.svg)](https://conda.anaconda.org/monomonedula)
+[![Anaconda-Server Badge](https://anaconda.org/monomonedula/sten/badges/platforms.svg)](https://anaconda.org/monomonedula/sten)
 # Simple topological embedding for nodes (STEN).
 
 Deterministic graph algorithm for node embedding generation based on their closeness to each other
@@ -12,10 +14,7 @@ Please refer to the jupyter notebook in this repository for the exampples.
 
 # Installation
 
-`conda install -c monomonedula sten -c haasad`
-
-This project uses [pypardiso][1] anaconda package for solving sparse linear equations, therefore `-c haasad` part is necessary.
-
+`conda install -c monomonedula sten`
 
 
 # The idea
